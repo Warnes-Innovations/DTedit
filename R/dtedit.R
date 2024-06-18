@@ -465,10 +465,7 @@ dtedit <- function(input, output, name, thedata, id,
   })
   
   deleteModal <- function(row) {
-    fields <- list()
-    for(i in view.cols) {
-      fields[[i]] <- div(paste0(i, ' = ', result$thedata[row,i]))
-    }
+    fields <- shinyjs::disabled(getFields('_add_', values = result$thedata[row,]))
     shiny::modalDialog(title = title.delete,
                        shiny::p('Are you sure you want to delete this record?'),
                        fields,
