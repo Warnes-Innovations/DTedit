@@ -80,6 +80,8 @@
 #'        feature. For developers, a message is printed using the warning function.
 #' @param datatable.options options passed to \code{\link{DT::renderDataTable}}.
 #'        See \link{https://rstudio.github.io/DT/options.html} for more information.
+#' @inheritParams renderDataTable      
+#'  
 #' @export
 dtedit <- function(input, output, name, thedata, id,
 				   view.cols = names(thedata),
@@ -110,8 +112,10 @@ dtedit <- function(input, output, name, thedata, id,
 				   callback.delete = function(data, row) { },
 				   callback.update = function(data, olddata, row) { },
 				   callback.insert = function(data, row) { },
+				   callback.replace = function(data) {data},
 				   click.time.threshold = 2, # in seconds
-				   datatable.options = list(pageLength=defaultPageLength)
+				   datatable.options = list(pageLength=defaultPageLength),
+				   colnames
 ) {
 	# Some basic parameter checking
 	if(!is.data.frame(thedata) | ncol(thedata) < 1) {
@@ -167,18 +171,27 @@ dtedit <- function(input, output, name, thedata, id,
 		inputTypes[names(input.types)] <- input.types
 	}
 
-	# Convert any list columns to characters before displaying
-	for(i in 1:ncol(thedata)) {
-		if(nrow(thedata) == 0) {
-			thedata[,i] <- character()
-		} else if(is.list(thedata[,i])) {
-			thedata[,i] <- sapply(thedata[,i], FUN = function(x) { paste0(x, collapse = ', ') })
-		}
-	}
 
 	output[[DataTableName]] <- DT::renderDataTable({
+	  thedata <- result$thedata 
+	  
+	  # Convert any list columns to characters before displaying
+	  for(i in 1:ncol(thedata)) {
+	    if(nrow(thedata) == 0) {
+	      thedata[,i] <- character()
+	    } else if(is.list(thedata[,i])) {
+	      thedata[,i] <- sapply(thedata[,i], FUN = function(x) { paste0(x, collapse = ', ') })
+	    }
+	  }
+	  
 		thedata[,view.cols]
-	}, options = datatable.options, server=TRUE, selection='single', rownames=FALSE)
+	}, 
+	options = datatable.options, 
+	server=TRUE, 
+	selection='single', 
+	rownames=FALSE,
+	colnames=colnames
+	)
 
 	getFields <- function(typeName, values) {
 		fields <- list()
