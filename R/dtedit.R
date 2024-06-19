@@ -60,14 +60,17 @@
 #' @param title.delete the title of the dialog box for deleting a row.
 #' @param title.edit the title of the dialog box for editing a row.
 #' @param title.add the title of the dialog box for inserting a new row.
+#' 
 #' @param label.delete the label of the delete button.
 #' @param label.edit the label of the edit button.
 #' @param label.add the label of the add button.
 #' @param label.copy the label of the copy button.
+#' 
 #' @param show.delete whether to show/enable the delete button.
 #' @param show.update whether to show/enable the update button.
 #' @param show.insert whether to show/enable the insert button.
 #' @param show.copy whether to show/enablre the copy button.
+#' 
 #' @param callback.delete a function called when the user deletes a row. This function should
 #'        return an updated data.frame.
 #' @param callback.update a function called when the user updates a row. This function should
@@ -101,18 +104,22 @@ dtedit <- function(input, output, name, thedata, id,
                    title.delete = 'Delete',
                    title.edit = 'Edit',
                    title.add = 'New',
+                   #
                    label.delete = 'Delete',
                    label.edit = 'Edit',
                    label.add = 'New',
                    label.copy = 'Copy',
+                   #
                    show.delete = TRUE,
                    show.update = TRUE,
                    show.insert = TRUE,
                    show.copy = TRUE,
+                   #
                    enable.delete = TRUE,
                    enable.update = TRUE,
                    enable.insert = TRUE,
                    enable.copy   = TRUE,
+                   #
                    callback.delete = function(data, row) { },
                    callback.update = function(data, olddata, row) { },
                    callback.insert = function(data, row) { },
@@ -356,21 +363,22 @@ dtedit <- function(input, output, name, thedata, id,
   
   observeEvent(input[[paste0(name, '_copy')]], {
     row <- input[[paste0(name, 'dt_rows_selected')]]
-    if(!is.null(row)) {
-      if(row > 0) {
-        shiny::showModal(addModal(values=result$thedata[row,]))
-      }
+    if(!is.null(row) && row > 0) {
+      shiny::showModal(addModal(values=result$thedata[row,]))
+    } else {
+      shiny::showNotification('No row selected for copy.', type='error')
     }
+    
   })
   
   ##### Update functions #####################################################
   
   observeEvent(input[[paste0(name, '_edit')]], {
     row <- input[[paste0(name, 'dt_rows_selected')]]
-    if(!is.null(row)) {
-      if(row > 0) {
-        shiny::showModal(editModal(row))
-      }
+    if(!is.null(row) && row > 0) {
+      shiny::showModal(editModal(row))
+    } else {
+      shiny::showNotification('No row selected for update.', type='error')
     }
   })
   
@@ -387,36 +395,38 @@ dtedit <- function(input, output, name, thedata, id,
     update.click <- Sys.time()
     
     row <- input[[paste0(name, 'dt_rows_selected')]]
-    if(!is.null(row)) {
-      if(row > 0) {
-        newdata <- result$thedata
-        for(i in edit.cols) {
-          if(inputTypes[i] %in% c('selectInputMultiple')) {
-            newdata[[i]][row] <- list(input[[paste0(name, '_edit_', i)]])
-          } else {
-            newdata[row,i] <- input[[paste0(name, '_edit_', i)]]
-          }
+    if(!is.null(row) && row > 0) {
+      newdata <- result$thedata
+      for(i in edit.cols) {
+        if(inputTypes[i] %in% c('selectInputMultiple')) {
+          newdata[[i]][row] <- list(input[[paste0(name, '_edit_', i)]])
+        } else {
+          newdata[row,i] <- input[[paste0(name, '_edit_', i)]]
         }
-        tryCatch({
-          callback.data <- callback.update(data = newdata,
-                                           olddata = result$thedata,
-                                           row = row)
-          if(!is.null(callback.data) & is.data.frame(callback.data)) {
-            result$thedata <- callback.data
-          } else {
-            result$thedata <- newdata
-          }
-          updateData(dt.proxy,
-                     result$thedata[,view.cols],
-                     rownames = FALSE)
-          shiny::removeModal()
-          return(TRUE)
-        }, error = function(e) {
-          output[[paste0(name, '_message')]] <<- shiny::renderText(geterrmessage())
-          return(FALSE)
-        })
       }
+      tryCatch({
+        callback.data <- callback.update(data = newdata,
+                                         olddata = result$thedata,
+                                         row = row)
+        if(!is.null(callback.data) & is.data.frame(callback.data)) {
+          result$thedata <- callback.data
+        } else {
+          result$thedata <- newdata
+        }
+        updateData(dt.proxy,
+                   result$thedata[,view.cols],
+                   rownames = FALSE)
+        shiny::removeModal()
+        return(TRUE)
+      }, error = function(e) {
+        output[[paste0(name, '_message')]] <<- shiny::renderText(geterrmessage())
+        return(FALSE)
+      })
+    } else 
+    {
+      shiny::showNotification('No row selected for delete.', type='error')
     }
+    
     return(FALSE)
   })
   
@@ -437,29 +447,30 @@ dtedit <- function(input, output, name, thedata, id,
   
   observeEvent(input[[paste0(name, '_remove')]], {
     row <- input[[paste0(name, 'dt_rows_selected')]]
-    if(!is.null(row)) {
-      if(row > 0) {
-        shiny::showModal(deleteModal(row))
-      }
+    if(!is.null(row) && row > 0) {
+      shiny::showModal(deleteModal(row))
+    } else {
+      shiny::showNotification('No row selected for delete', type='error')
     }
   })
   
   observeEvent(input[[paste0(name, '_delete')]], {
     row <- input[[paste0(name, 'dt_rows_selected')]]
-    if(!is.null(row)) {
-      if(row > 0) {
-        newdata <- callback.delete(data = result$thedata, row = row)
-        if(!is.null(newdata) & is.data.frame(newdata)) {
-          result$thedata <- newdata
-        } else {
-          result$thedata <- result$thedata[-row,]
-        }
-        updateData(dt.proxy,
-                   result$thedata[,view.cols],
-                   rownames = FALSE)
-        shiny::removeModal()
-        return(TRUE)
+    if(!is.null(row) && row > 0) {
+      newdata <- callback.delete(data = result$thedata, row = row)
+      if(!is.null(newdata) & is.data.frame(newdata)) {
+        result$thedata <- newdata
+      } else {
+        result$thedata <- result$thedata[-row,]
       }
+      updateData(dt.proxy,
+                 result$thedata[,view.cols],
+                 rownames = FALSE)
+      shiny::removeModal()
+      return(TRUE)
+      
+    } else {
+      shiny::showNotification('No row selected for delete.', type='error')
     }
     return(FALSE)
   })
