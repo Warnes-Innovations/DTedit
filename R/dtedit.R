@@ -83,7 +83,7 @@
 #'        feature. For developers, a message is printed using the warning function.
 #' @param datatable.options options passed to \code{\link{DT::renderDataTable}}.
 #'        See \link{https://rstudio.github.io/DT/options.html} for more information.
-#' @inheritParams renderDataTable      
+#' @inheritParams DT::renderDataTable      
 #'  
 #' @export
 dtedit <- function(input, output, name, thedata, id,
