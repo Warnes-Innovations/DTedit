@@ -154,7 +154,7 @@ dtedit <- function(input, output, name, thedata, id,
   result$dt.name <- DataTableName
 
   dt.proxy <- DT::dataTableProxy(DataTableName)
-  
+
   selectInputMultiple <- function(...) {
     shiny::selectInput(multiple = TRUE, selectize = selectize, ...)
   }
@@ -363,7 +363,7 @@ dtedit <- function(input, output, name, thedata, id,
   ##### Copy functions #######################################################
   
   observeEvent(input[[paste0(name, '_copy')]], {
-    row <- input[[paste0(name, 'dt_rows_selected')]]
+    row <- input[[paste0(name, '_dt_rows_selected')]]
     if(!is.null(row) && row > 0) {
       shiny::showModal(addModal(values=result$thedata[row,]))
     } else {
@@ -375,7 +375,7 @@ dtedit <- function(input, output, name, thedata, id,
   ##### Update functions #####################################################
   
   observeEvent(input[[paste0(name, '_edit')]], {
-    row <- input[[paste0(name, 'dt_rows_selected')]]
+    row <- input[[paste0(name, '_dt_rows_selected')]]
     if(!is.null(row) && row > 0) {
       shiny::showModal(editModal(row))
     } else {
@@ -395,7 +395,7 @@ dtedit <- function(input, output, name, thedata, id,
     }
     update.click <- Sys.time()
     
-    row <- input[[paste0(name, 'dt_rows_selected')]]
+    row <- input[[paste0(name, '_dt_rows_selected')]]
     if(!is.null(row) && row > 0) {
       newdata <- result$thedata
       for(i in edit.cols) {
@@ -447,7 +447,7 @@ dtedit <- function(input, output, name, thedata, id,
   ##### Delete functions #####################################################
   
   observeEvent(input[[paste0(name, '_remove')]], {
-    row <- input[[paste0(name, 'dt_rows_selected')]]
+    row <- input[[paste0(name, '_dt_rows_selected')]]
     if(!is.null(row) && row > 0) {
       shiny::showModal(deleteModal(row))
     } else {
@@ -456,7 +456,7 @@ dtedit <- function(input, output, name, thedata, id,
   })
   
   observeEvent(input[[paste0(name, '_delete')]], {
-    row <- input[[paste0(name, 'dt_rows_selected')]]
+    row <- input[[paste0(name, '_dt_rows_selected')]]
     if(!is.null(row) && row > 0) {
       newdata <- callback.delete(data = result$thedata, row = row)
       if(!is.null(newdata) & is.data.frame(newdata)) {
